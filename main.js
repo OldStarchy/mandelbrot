@@ -2,7 +2,7 @@
 /// <reference path="types.d.ts"/>
 
 import 'https://unpkg.com/classnames';
-import { h, render } from 'https://unpkg.com/preact@latest?module';
+import { createElement, render } from 'https://unpkg.com/preact@latest?module';
 import HistoryTreeView from './components/HistoryTreeView.js';
 import ComplexNumber from './core/ComplexNumber.js';
 import HistoryTree from './core/HistoryTree.js';
@@ -137,7 +137,7 @@ window.addEventListener('load', () => {
 	);
 
 	render(
-		h(HistoryTreeView, { historyTree: history }, null),
+		createElement(HistoryTreeView, { historyTree: history }, null),
 		document.getElementById('history')
 	);
 
