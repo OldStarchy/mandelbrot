@@ -2,9 +2,12 @@
 
 import 'https://unpkg.com/classnames';
 import htm from 'https://unpkg.com/htm?module';
-import {useEffect, useRef, useState} from 'https://unpkg.com/preact@latest/hooks/dist/hooks.module.js?module';
-import {h, render} from 'https://unpkg.com/preact@latest?module';
-
+import {
+	useEffect,
+	useRef,
+	useState,
+} from 'https://unpkg.com/preact@latest/hooks/dist/hooks.module.js?module';
+import { h, render } from 'https://unpkg.com/preact@latest?module';
 
 const html = htm.bind(h);
 
@@ -46,12 +49,9 @@ class ComplexNumber {
 		// 		this.real * other.imaginary
 		// );
 
-		const real =
-			this.real * other.real -
-			this.imaginary * other.imaginary;
+		const real = this.real * other.real - this.imaginary * other.imaginary;
 		const imaginary =
-			this.imaginary * other.real +
-			this.real * other.imaginary;
+			this.imaginary * other.real + this.real * other.imaginary;
 
 		this.real = real;
 		this.imaginary = imaginary;
@@ -71,13 +71,11 @@ class ComplexNumber {
 		// );
 
 		const real =
-			(this.real * other.real +
-				this.imaginary * other.imaginary) /
+			(this.real * other.real + this.imaginary * other.imaginary) /
 			denominator;
 
 		const imaginary =
-			(this.imaginary * other.real -
-				this.real * other.imaginary) /
+			(this.imaginary * other.real - this.real * other.imaginary) /
 			denominator;
 		this.real = real;
 		this.imaginary = imaginary;
@@ -251,9 +249,7 @@ class Matrix3 {
 		const h = this.elements[7];
 		const i = this.elements[8];
 		const det =
-			a * (e * i - f * h) -
-			b * (d * i - f * g) +
-			c * (d * h - e * g);
+			a * (e * i - f * h) - b * (d * i - f * g) + c * (d * h - e * g);
 		if (det === 0) {
 			return null;
 		}
@@ -270,7 +266,6 @@ class Matrix3 {
 		);
 	}
 }
-
 
 /**
  * @param {HTMLCanvasElement} canvas
@@ -304,17 +299,11 @@ async function drawMandelbrot(
 				new Vector3(x / width, y / height, 1)
 			);
 
-			const c = new ComplexNumber(
-				transformedPoint.x,
-				transformedPoint.y
-			);
+			const c = new ComplexNumber(transformedPoint.x, transformedPoint.y);
 			const result = iterateMandelbrot(c, maxIterations);
 			if (result.iterations === maxIterations)
 				context.fillStyle = 'black';
-			else
-				context.fillStyle = rainbowColour(
-					result.iterations
-				);
+			else context.fillStyle = rainbowColour(result.iterations);
 			context.fillRect(x, y, 1, 1);
 		}
 	}
@@ -338,12 +327,19 @@ async function drawMandelbrot(
  * @param {number} maxIterations
  */
 function createThumbnail(width, height, transform, maxIterations) {
-	const canvas = document.createElement("canvas");
+	const canvas = document.createElement('canvas');
 	canvas.width = width;
 	canvas.height = height;
-	const ctx = canvas.getContext("2d");
+	const ctx = canvas.getContext('2d');
 
-	drawMandelbrot(canvas, width, height, transform, maxIterations, new AbortController().signal);
+	drawMandelbrot(
+		canvas,
+		width,
+		height,
+		transform,
+		maxIterations,
+		new AbortController().signal
+	);
 	return canvas;
 }
 
@@ -365,11 +361,11 @@ function debounce(fn, timeout) {
 	};
 }
 
-
 window.addEventListener('load', () => {
 	let maxIterations = 5000;
 	const canvasEle = document.getElementById('canvas');
-	if (!(canvasEle instanceof HTMLCanvasElement)) throw new Error("Invalid canvas element");
+	if (!(canvasEle instanceof HTMLCanvasElement))
+		throw new Error('Invalid canvas element');
 	const canvas = canvasEle;
 	canvas.width = window.innerWidth;
 	canvas.height = window.innerHeight;
@@ -382,12 +378,17 @@ window.addEventListener('load', () => {
 	function createHistoryItem(transform) {
 		return {
 			transform,
-			thumbnail: createThumbnail(150, 150, transform, maxIterations)
-		}
+			thumbnail: createThumbnail(150, 150, transform, maxIterations),
+		};
 	}
-	const history = new HistoryTree(createHistoryItem(Matrix3.boundingBox(-2, -2, 2, 2)));
+	const history = new HistoryTree(
+		createHistoryItem(Matrix3.boundingBox(-2, -2, 2, 2))
+	);
 
-	render(h(HistoryTreeView, {historyTree: history}, null), document.getElementById('history'));
+	render(
+		h(HistoryTreeView, { historyTree: history }, null),
+		document.getElementById('history')
+	);
 
 	// const historyGui = /** @type {HistoryElement|undefined} */ (document.getElementById('history'));
 
@@ -430,14 +431,9 @@ window.addEventListener('load', () => {
 		);
 	}
 	const drawDebounced = debounce(drawCurrent, 1000);
-	history.onMove.addEventListener('move',  () => {
-
+	history.onMove.addEventListener('move', () => {
 		drawCurrent();
 	});
-
-
-
-
 
 	window.addEventListener(
 		'resize',
@@ -476,16 +472,8 @@ window.addEventListener('load', () => {
 			e.preventDefault();
 
 			//if there's already a save here, confirm overwrite
-			if (
-				localStorage.getItem(`transform${e.keyCode - 48}`)
-			) {
-				if (
-					!confirm(
-						`Overwrite saved transform ${
-							e.keyCode - 48
-						}?`
-					)
-				)
+			if (localStorage.getItem(`transform${e.keyCode - 48}`)) {
+				if (!confirm(`Overwrite saved transform ${e.keyCode - 48}?`))
 					return;
 			}
 
@@ -506,7 +494,11 @@ window.addEventListener('load', () => {
 				`transform${e.keyCode - 48}`
 			);
 			if (savedTransform) {
-				history.push(createHistoryItem(Matrix3.fromJson(JSON.parse(savedTransform))));
+				history.push(
+					createHistoryItem(
+						Matrix3.fromJson(JSON.parse(savedTransform))
+					)
+				);
 				alert(`Loading transform ${e.keyCode - 48}`);
 
 				drawCurrent();
@@ -528,8 +520,7 @@ window.addEventListener('load', () => {
 				history.go(-1);
 			}
 
-			if (history.current !== oldHead)
-			{
+			if (history.current !== oldHead) {
 				drawCurrent();
 			}
 		}
@@ -543,16 +534,13 @@ window.addEventListener('load', () => {
 				'Enter x and y resolution (separated by a space)',
 				'1920 1080'
 			);
-			const resolution = res
-				.split(' ')
-				.map((x) => parseInt(x));
+			const resolution = res.split(' ').map((x) => parseInt(x));
 
 			if (
 				resolution.length !== 2 ||
 				resolution.some(
 					(dimension) =>
-						typeof dimension !== 'number' ||
-						dimension < 1
+						typeof dimension !== 'number' || dimension < 1
 				)
 			) {
 				alert('Invalid resolution');
@@ -566,7 +554,7 @@ window.addEventListener('load', () => {
 			canvasHiRes.height = height;
 			const context = canvasHiRes.getContext('2d');
 
-			(async() => {
+			(async () => {
 				await drawMandelbrot(
 					canvasHiRes,
 					canvasHiRes.width,
@@ -580,7 +568,7 @@ window.addEventListener('load', () => {
 				link.download = `mandelbrot.png`;
 				link.href = canvasHiRes.toDataURL();
 				link.click();
-			})()
+			})();
 		}
 	});
 	drawCurrent();
@@ -606,18 +594,17 @@ window.addEventListener('load', () => {
 		context.strokeStyle = '#fff2';
 
 		if (pathLength > 0) {
-			const transformedPoint = history.currentState().transform.transform(
-				new Vector3(
-					event.offsetX / canvas.width,
-					event.offsetY / canvas.height,
-					1
-				)
-			);
+			const transformedPoint = history
+				.currentState()
+				.transform.transform(
+					new Vector3(
+						event.offsetX / canvas.width,
+						event.offsetY / canvas.height,
+						1
+					)
+				);
 
-			const c = new ComplexNumber(
-				transformedPoint.x,
-				transformedPoint.y
-			);
+			const c = new ComplexNumber(transformedPoint.x, transformedPoint.y);
 
 			const path = iterateMandelbrotAndGetPath(c, pathLength);
 
@@ -666,29 +653,26 @@ window.addEventListener('load', () => {
 		if (event.button !== 0) return;
 		if (!clickStart) return;
 
-		const clickEnd = new Vector3(
-			event.offsetX,
-			event.offsetY,
-			1
-		);
-
-
+		const clickEnd = new Vector3(event.offsetX, event.offsetY, 1);
 
 		history.push(
-			createHistoryItem(history.currentState().transform.multiply(
-				Matrix3.boundingBox(
-					clickStart.x / canvas.width,
-					clickStart.y / canvas.height,
-					clickEnd.x / canvas.width,
-					clickEnd.y / canvas.height
-				)
-			))
+			createHistoryItem(
+				history
+					.currentState()
+					.transform.multiply(
+						Matrix3.boundingBox(
+							clickStart.x / canvas.width,
+							clickStart.y / canvas.height,
+							clickEnd.x / canvas.width,
+							clickEnd.y / canvas.height
+						)
+					)
+			)
 		);
 		clickStart = null;
 
 		drawCurrent();
 	});
-
 });
 
 //custom html component for history
@@ -696,7 +680,7 @@ class HistoryElement extends HTMLElement {
 	constructor() {
 		super();
 		this.attachShadow({ mode: 'open' });
-		this.shadowRoot.innerHTML = /*html*/`
+		this.shadowRoot.innerHTML = /*html*/ `
 <style>
 </style>
 
@@ -715,8 +699,6 @@ class HistoryElement extends HTMLElement {
 		this.content = this.shadowRoot.querySelector('.history__content');
 		this.list = this.shadowRoot.querySelector('.history__list');
 
-
-
 		this.showHideButton.addEventListener('click', () => {
 			this.root.classList.toggle('history--is-open');
 		});
@@ -727,19 +709,21 @@ class HistoryElement extends HTMLElement {
 			li.classList.remove('history__item--is-current');
 		});
 
-		this.list.children[selected]?.classList?.add('history__item--is-current');
+		this.list.children[selected]?.classList?.add(
+			'history__item--is-current'
+		);
 	}
 
 	/**
-		* @param {HTMLElement[]} items
-		*/
+	 * @param {HTMLElement[]} items
+	 */
 	append(...items) {
-		items.forEach(item => {
+		items.forEach((item) => {
 			const listItem = document.createElement('li');
 			listItem.classList.add('history__item');
 			listItem.appendChild(item);
 			this.list.appendChild(listItem);
-		})
+		});
 	}
 
 	clear() {
@@ -750,16 +734,16 @@ class HistoryElement extends HTMLElement {
 customElements.define('x-history', HistoryElement);
 
 /**
-	* @template T
-	*/
+ * @template T
+ */
 class StateHistory {
 	/**
-		* @param {T} initialState
-		*/
+	 * @param {T} initialState
+	 */
 	constructor(initialState) {
 		/**
-			* @type {T[]}
-			*/
+		 * @type {T[]}
+		 */
 		this.history = [initialState];
 		this.head = 0;
 
@@ -768,31 +752,35 @@ class StateHistory {
 	}
 
 	/**
-		* @param {T} state
-		*/
+	 * @param {T} state
+	 */
 	push(state) {
 		this.history.splice(++this.head, Infinity, state);
 		this.onChange?.();
-		this.onMove?.()
+		this.onMove?.();
 	}
 
 	/**
-		* @param {number} relative
-		* @return {T}
-		*/
+	 * @param {number} relative
+	 * @return {T}
+	 */
 	go(relative) {
-		if ((relative | 0) !== relative) throw new Error('where must be an integer');
+		if ((relative | 0) !== relative)
+			throw new Error('where must be an integer');
 
-		return this.goTo(clamp(this.head + relative, 0, this.history.length - 1))
+		return this.goTo(
+			clamp(this.head + relative, 0, this.history.length - 1)
+		);
 	}
 
 	/**
-		* @param {number} where
-		* @return {T}
-		*/
+	 * @param {number} where
+	 * @return {T}
+	 */
 	goTo(where) {
 		if ((where | 0) !== where) throw new Error('where must be an integer');
-		if (where < 0 || where >= this.history.length) throw new Error('where must be in the range [0, history.length)');
+		if (where < 0 || where >= this.history.length)
+			throw new Error('where must be in the range [0, history.length)');
 
 		if (this.head !== where) {
 			this.head = where;
@@ -808,34 +796,30 @@ class StateHistory {
 }
 
 /**
-	* @template T
-	* @param {HistoryNode<T>} nodePrev
-	* @param {HistoryNode<T>} node
-	* @param {HTMLElement} element
-	*/
+ * @template T
+ * @param {HistoryNode<T>} nodePrev
+ * @param {HistoryNode<T>} node
+ * @param {HTMLElement} element
+ */
 function diff(nodePrev, node, element) {
 	if (nodePrev === node) return;
-
-
 }
 
 /**
-	* @template T
-	* @typedef {{created: number; id: string; state: T; children: HistoryNode<T>[], parent: null|HistoryNode<T>}} HistoryNode
-	*/
+ * @template T
+ * @typedef {{created: number; id: string; state: T; children: HistoryNode<T>[], parent: null|HistoryNode<T>}} HistoryNode
+ */
 /**
-	* @template T
-	*/
+ * @template T
+ */
 class HistoryTree {
-
 	/**
-		* @param {T} initialState
-		*/
+	 * @param {T} initialState
+	 */
 	constructor(initialState) {
-
 		/**
-			* @type {HistoryNode<T>}
-			*/
+		 * @type {HistoryNode<T>}
+		 */
 		this.root = {
 			created: Date.now(),
 			id: 'root',
@@ -851,8 +835,8 @@ class HistoryTree {
 	}
 
 	/**
-		* @param {T} state
-		*/
+	 * @param {T} state
+	 */
 	push(state) {
 		const node = {
 			created: Date.now(),
@@ -862,7 +846,6 @@ class HistoryTree {
 			parent: this.current,
 		};
 
-
 		this.current.children.push(node);
 		this.current = node;
 
@@ -871,16 +854,16 @@ class HistoryTree {
 	}
 
 	/**
-		* @return {T}
-		*/
+	 * @return {T}
+	 */
 	currentState() {
 		return this.current.state;
 	}
 
 	/**
-		* @param {HistoryNode<T>} node
-		* @return {number[]}
-		*/
+	 * @param {HistoryNode<T>} node
+	 * @return {number[]}
+	 */
 	#getPath(node) {
 		const path = [];
 
@@ -893,9 +876,9 @@ class HistoryTree {
 	}
 
 	/**
-		* @param {number[]} path
-		* @return {HistoryNode<T>}
-		*/
+	 * @param {number[]} path
+	 * @return {HistoryNode<T>}
+	 */
 	#getNode(path) {
 		let node = this.root;
 
@@ -907,11 +890,12 @@ class HistoryTree {
 	}
 
 	/**
-		* @param {number} relative
-		* @return {T}
-		*/
+	 * @param {number} relative
+	 * @return {T}
+	 */
 	go(relative) {
-		if ((relative | 0) !== relative) throw new Error('where must be an integer');
+		if ((relative | 0) !== relative)
+			throw new Error('where must be an integer');
 
 		let node = this.current;
 		while (relative < 0 && node.parent !== null) {
@@ -919,7 +903,7 @@ class HistoryTree {
 			relative++;
 		}
 
-		while (relative > 0 && node.children.length  === 1) {
+		while (relative > 0 && node.children.length === 1) {
 			node = node.children[0];
 			relative--;
 		}
@@ -928,10 +912,10 @@ class HistoryTree {
 	}
 
 	/**
-		* @param {HistoryNode<T>} from
-		* @param {string} nodeId
-		* @return {HistoryNode<T> | null}
-		*/
+	 * @param {HistoryNode<T>} from
+	 * @param {string} nodeId
+	 * @return {HistoryNode<T> | null}
+	 */
 	#findNodeWithId(from, nodeId) {
 		if (from.id === nodeId) return from;
 
@@ -945,9 +929,9 @@ class HistoryTree {
 	}
 
 	/**
-		* @param {string} nodeId
-		* @return {T}
-		*/
+	 * @param {string} nodeId
+	 * @return {T}
+	 */
 	goTo(nodeId) {
 		if (this.current.id !== nodeId) {
 			const node = this.#findNodeWithId(this.root, nodeId);
@@ -966,19 +950,20 @@ function clamp(value, min, max) {
 }
 
 function randId() {
-	return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+	return (
+		Math.random().toString(36).substring(2, 15) +
+		Math.random().toString(36).substring(2, 15)
+	);
 }
 
+/**
+ * @typedef {{transform: Matrix3; thumbnail: HTMLCanvasElement}} HistoryItem
+ */
 
 /**
-	* @typedef {{transform: Matrix3; thumbnail: HTMLCanvasElement}} HistoryItem
-	*/
-
-/**
-	* @param {{historyTree: HistoryTree<HistoryItem>}} props
-	*/
-function HistoryTreeView({historyTree}) {
-
+ * @param {{historyTree: HistoryTree<HistoryItem>}} props
+ */
+function HistoryTreeView({ historyTree }) {
 	// <div class="history">
 	// 	<button class="history__show-hide">+</button>
 	// 	<div class="history__content">
@@ -994,7 +979,7 @@ function HistoryTreeView({historyTree}) {
 	useEffect(() => {
 		const onChange = () => {
 			setRefresh({});
-		}
+		};
 		const onMove = () => {
 			setSelected(historyTree.current.id);
 		};
@@ -1004,24 +989,28 @@ function HistoryTreeView({historyTree}) {
 		return () => {
 			historyTree.onChange.removeEventListener('change', onChange);
 			historyTree.onMove.removeEventListener('move', onMove);
-		}
+		};
 	}, [historyTree]);
 
-
-
 	return html`
-		<div class=${classNames({
-			'history': true,
-			'history--is-open': isOpen,
-		})}>
-			<button class="history__show-hide" onClick=${() => setIsOpen(!isOpen)}>+</button>
+		<div
+			class=${classNames({
+				history: true,
+				'history--is-open': isOpen,
+			})}
+		>
+			<button
+				class="history__show-hide"
+				onClick=${() => setIsOpen(!isOpen)}
+				>+</button
+			>
 
 			<div class="history__content">
 				<${HistoryTreeNodeView}
 					class="historyTree"
 					historyNode=${historyTree.root}
 					selectedNode=${selected}
-					onNodeClicked=${nodeId => historyTree.goTo(nodeId)}
+					onNodeClicked=${(nodeId) => historyTree.goTo(nodeId)}
 				/>
 			</div>
 		</div>
@@ -1029,42 +1018,53 @@ function HistoryTreeView({historyTree}) {
 }
 
 /**
-	* @param {{historyNode: HistoryNode<HistoryItem>; selectedNode: string; onNodeClicked: (nodeId: string) => void}} props
-	*/
-function HistoryTreeNodeView({historyNode, selectedNode, onNodeClicked}) {
+ * @param {{historyNode: HistoryNode<HistoryItem>; selectedNode: string; onNodeClicked: (nodeId: string) => void}} props
+ */
+function HistoryTreeNodeView({ historyNode, selectedNode, onNodeClicked }) {
 	const contentHolder = useRef(null);
 
 	useEffect(() => {
 		if (contentHolder.current) {
 			contentHolder.current.append(historyNode.state.thumbnail);
 		}
-	})
+	});
 
 	return html`
-	<div
-		class=${classNames({
-			'historyTree': true,
-			'historyTree--is-selected': selectedNode === historyNode.id,
-			'historyTree--has-children': historyNode.children.length > 0
-		})}
-	>
-		<div class="historyTree__content" ref=${contentHolder} onClick=${() => onNodeClicked(historyNode.id)} />
+		<div
+			class=${classNames({
+				historyTree: true,
+				'historyTree--is-selected': selectedNode === historyNode.id,
+				'historyTree--has-children': historyNode.children.length > 0,
+			})}
+		>
+			<div
+				class="historyTree__content"
+				ref=${contentHolder}
+				onClick=${() => onNodeClicked(historyNode.id)}
+			/>
 
-		${historyNode.children.length > 0 &&
+			${historyNode.children.length > 0 &&
 			html`
-			<ul class="historyTree__items">
-				${historyNode.children.sort((a, b) => a.created - b.created).map(child =>
-					html`
-					<li class="historyTree__item" key=${child.id}>
-						<${HistoryTreeNodeView}
-							historyNode=${child}
-							selectedNode=${selectedNode}
-							onNodeClicked=${onNodeClicked}
-						/>
-					</li>
-				`)}
-			</ul>
-		`}
-	</div>
+				<ul class="historyTree__items">
+					${historyNode.children
+						.sort((a, b) => a.created - b.created)
+						.map(
+							(child) =>
+								html`
+									<li
+										class="historyTree__item"
+										key=${child.id}
+									>
+										<${HistoryTreeNodeView}
+											historyNode=${child}
+											selectedNode=${selectedNode}
+											onNodeClicked=${onNodeClicked}
+										/>
+									</li>
+								`
+						)}
+				</ul>
+			`}
+		</div>
 	`;
 }
