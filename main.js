@@ -358,12 +358,18 @@ window.addEventListener('load', () => {
 	canvas.addEventListener('mousedown', (event) => {
 		// If middle mouse button is pressed, zoom out
 		if (event.button === 1) {
-			history.push(
-				createHistoryItem(
-					Matrix3.boundingBox(-2, -2, 2, 2),
-					history.currentState().juliaInitial
-				)
-			);
+			if (history.current.id !== 'root') {
+				if (history.currentState().juliaInitial === null) {
+					history.goTo('root');
+				} else {
+					history.push(
+						createHistoryItem(
+							Matrix3.boundingBox(-2, -2, 2, 2),
+							history.currentState().juliaInitial
+						)
+					);
+				}
+			}
 			event.preventDefault();
 
 			drawCurrent();
