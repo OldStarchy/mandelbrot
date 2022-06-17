@@ -6,14 +6,40 @@ import { createElement, render } from 'https://unpkg.com/preact@latest?module';
 import HistoryTreeView from './components/HistoryTreeView.js';
 import ComplexNumber from './core/ComplexNumber.js';
 import HistoryTree from './core/HistoryTree.js';
-import iterateMandelbrot from './core/iterateMandelbrot.js';
+import iterateMandelbrot, { iterateJuliaJs } from './core/iterateMandelbrot.js';
 import Matrix3 from './core/Matrix3.js';
 import Vector3 from './core/Vector3.js';
 import debounce from './util/debounce.js';
 
+/**
+ * @typedef {{
+ * 	transform: Matrix3;
+ * 	juliaInitial: ComplexNumber | null;
+ * 	thumbnail: HTMLCanvasElement;
+ * }} HistoryItem
+ */
+
+/**
+ * @template T
+ * @typedef {import('./core/HistoryTree.js').HistoryNode<T>} HistoryNode
+ */
+
 function iterateMandelbrotAndGetPath(c, maxIterations) {
 	const path = [];
 	let z = new ComplexNumber(0, 0);
+	maxIterations = Math.max(1, maxIterations);
+	path.push(z.clone());
+	for (let i = 0; i < maxIterations; i++) {
+		z = z.multiply(z).add(c);
+		path.push(z.clone());
+		if (z.magnitudeSquared() > 4) return path;
+	}
+
+	return path;
+}
+function iterateJuliaAndGetPath(initial, c, maxIterations) {
+	const path = [];
+	let z = initial;
 	maxIterations = Math.max(1, maxIterations);
 	path.push(z.clone());
 	for (let i = 0; i < maxIterations; i++) {
@@ -37,6 +63,7 @@ function rainbowColour(iterations) {
  * @param {number} width
  * @param {number} height
  * @param {Matrix3} transform
+ * @param {ComplexNumber|null} juliaInitial
  * @param {number} maxIterations
  * @param {AbortSignal} abort
  */
@@ -45,6 +72,7 @@ async function drawMandelbrot(
 	width,
 	height,
 	transform,
+	juliaInitial,
 	maxIterations,
 	abort
 ) {
@@ -70,7 +98,9 @@ async function drawMandelbrot(
 			);
 
 			const c = new ComplexNumber(transformedPoint.x, transformedPoint.y);
-			const result = iterateMandelbrot(c, maxIterations);
+			const result = juliaInitial
+				? iterateJuliaJs(c, juliaInitial.clone(), maxIterations)
+				: iterateMandelbrot(c, maxIterations);
 			if (result.iterations === maxIterations)
 				context.fillStyle = 'black';
 			else context.fillStyle = rainbowColour(result.iterations);
@@ -94,9 +124,16 @@ async function drawMandelbrot(
  * @param {number} width
  * @param {number} height
  * @param {Matrix3} transform
+ * @param {ComplexNumber|null} juliaInitial
  * @param {number} maxIterations
  */
-function createThumbnail(width, height, transform, maxIterations) {
+function createThumbnail(
+	width,
+	height,
+	transform,
+	juliaInitial,
+	maxIterations
+) {
 	const canvas = document.createElement('canvas');
 	canvas.width = width;
 	canvas.height = height;
@@ -106,6 +143,7 @@ function createThumbnail(width, height, transform, maxIterations) {
 		width,
 		height,
 		transform,
+		juliaInitial,
 		maxIterations,
 		new AbortController().signal
 	);
@@ -124,16 +162,24 @@ window.addEventListener('load', () => {
 
 	/**
 	 * @param {Matrix3} transform
+	 * @param {ComplexNumber | null} juliaInitial
 	 * @return {HistoryItem}
 	 */
-	function createHistoryItem(transform) {
+	function createHistoryItem(transform, juliaInitial) {
 		return {
 			transform,
-			thumbnail: createThumbnail(150, 150, transform, maxIterations),
+			thumbnail: createThumbnail(
+				150,
+				150,
+				transform,
+				juliaInitial,
+				maxIterations
+			),
+			juliaInitial,
 		};
 	}
 	const history = new HistoryTree(
-		createHistoryItem(Matrix3.boundingBox(-2, -2, 2, 2))
+		createHistoryItem(Matrix3.boundingBox(-2, -2, 2, 2), null)
 	);
 
 	render(
@@ -147,11 +193,14 @@ window.addEventListener('load', () => {
 		abortController.abort();
 
 		abortController = new AbortController();
+		const state = history.currentState();
+
 		drawMandelbrot(
 			canvas,
 			canvas.width,
 			canvas.height,
-			history.currentState().transform,
+			state.transform,
+			state.juliaInitial,
 			maxIterations,
 			abortController.signal
 		);
@@ -222,7 +271,8 @@ window.addEventListener('load', () => {
 			if (savedTransform) {
 				history.push(
 					createHistoryItem(
-						Matrix3.fromJson(JSON.parse(savedTransform))
+						Matrix3.fromJson(JSON.parse(savedTransform)),
+						null
 					)
 				);
 				alert(`Loading transform ${e.keyCode - 48}`);
@@ -284,11 +334,13 @@ window.addEventListener('load', () => {
 			const context = canvasHiRes.getContext('2d');
 
 			(async () => {
+				const state = history.currentState();
 				await drawMandelbrot(
 					canvasHiRes,
 					canvasHiRes.width,
 					canvasHiRes.height,
-					history.currentState().transform,
+					state.transform,
+					state.juliaInitial,
 					maxIterations,
 					new AbortController().signal
 				);
@@ -306,7 +358,12 @@ window.addEventListener('load', () => {
 	canvas.addEventListener('mousedown', (event) => {
 		// If middle mouse button is pressed, zoom out
 		if (event.button === 1) {
-			history.push(createHistoryItem(Matrix3.boundingBox(-2, -2, 2, 2)));
+			history.push(
+				createHistoryItem(
+					Matrix3.boundingBox(-2, -2, 2, 2),
+					history.currentState().juliaInitial
+				)
+			);
 			event.preventDefault();
 
 			drawCurrent();
@@ -316,6 +373,31 @@ window.addEventListener('load', () => {
 		if (event.button !== 0) return;
 
 		clickStart = new Vector3(event.offsetX, event.offsetY, 1);
+	});
+
+	canvas.addEventListener('contextmenu', (event) => {
+		if (event.ctrlKey) return;
+
+		event.preventDefault();
+
+		const juliaInitial = history
+			.currentState()
+			.transform?.transform(
+				new Vector3(
+					event.offsetX / canvas.width,
+					event.offsetY / canvas.height,
+					1
+				)
+			);
+
+		if (!juliaInitial) return;
+
+		history.push(
+			createHistoryItem(
+				history.currentState().transform,
+				new ComplexNumber(juliaInitial.x, juliaInitial.y)
+			)
+		);
 	});
 
 	canvas.addEventListener('mousemove', (event) => {
@@ -336,9 +418,14 @@ window.addEventListener('load', () => {
 
 			const c = new ComplexNumber(transformedPoint.x, transformedPoint.y);
 
-			const path = iterateMandelbrotAndGetPath(c, pathLength);
+			const juliaInitial = history.currentState().juliaInitial;
+
+			const path = juliaInitial
+				? iterateJuliaAndGetPath(c, juliaInitial, pathLength)
+				: iterateMandelbrotAndGetPath(c, pathLength);
 
 			const inverseTransform = history.currentState().transform.inverse();
+			if (!inverseTransform) return;
 
 			context.beginPath();
 			path.forEach((point, index) => {
@@ -396,7 +483,8 @@ window.addEventListener('load', () => {
 							clickEnd.x / canvas.width,
 							clickEnd.y / canvas.height
 						)
-					)
+					),
+				history.currentState().juliaInitial
 			)
 		);
 		clickStart = null;

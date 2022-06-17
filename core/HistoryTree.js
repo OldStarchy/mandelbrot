@@ -2,6 +2,17 @@ import randId from '../util/randId.js';
 
 /**
  * @template T
+ * @typedef {{
+ * 	created: number;
+ * 	id: string;
+ * 	state: T;
+ * 	children: HistoryNode<T>[];
+ * 	parent: null | HistoryNode<T>;
+ * }} HistoryNode
+ */
+
+/**
+ * @template T
  */
 export default class HistoryTree {
 	/**

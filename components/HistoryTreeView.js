@@ -14,6 +14,10 @@ requireCss('./HistoryTreeView.css', import.meta.url);
  */
 
 /**
+ * @typedef {import('../main.js').HistoryItem} HistoryItem
+ */
+
+/**
  * @param {{historyTree: HistoryTree<HistoryItem>}} props
  */
 export default function HistoryTreeView({ historyTree }) {

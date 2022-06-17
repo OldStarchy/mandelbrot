@@ -8,6 +8,15 @@ import requireCss from '../util/requireCss.js';
 requireCss('./HistoryTreeNodeView.css', import.meta.url);
 
 /**
+ * @template T
+ * @typedef {import('../core/HistoryTree.js').HistoryNode<T>} HistoryNode
+ */
+
+/**
+ * @typedef {import('../main.js').HistoryItem} HistoryItem
+ */
+
+/**
  * @param {{historyNode: HistoryNode<HistoryItem>; selectedNode: string; onNodeClicked: (nodeId: string) => void}} props
  */
 export default function HistoryTreeNodeView({

@@ -1,18 +1,4 @@
-interface HistoryItem {
-	transform: Matrix3;
-	thumbnail: HTMLCanvasElement;
-}
-
-interface HistoryNode<T> {
-	created: number;
-	id: string;
-	state: T;
-	children: HistoryNode<T>[];
-	parent: null | HistoryNode<T>;
-}
-
 const classNames: (...args: any) => string;
-
 declare module 'https://unpkg.com/htm?module' {
 	export function bind(
 		createElement: (type: any, props?: any, ...children: any[]) => any
