@@ -51,6 +51,6 @@
 .history__content {
 	overflow-x: scroll;
 	overflow-y: auto;
-	background: black;
+	background: #000a;
 	height: 100%;
 }
