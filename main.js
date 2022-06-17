@@ -52,6 +52,11 @@ async function drawMandelbrot(
 	const startTime = performance.now();
 
 	const context = canvas.getContext('2d');
+
+	if (!context) {
+		throw new Error('Could not get canvas context');
+	}
+
 	// context.clearRect(0, 0, width, height);
 	for (let y = 0; y < height; y++) {
 		await new Promise((s) => setTimeout(s, 0));
@@ -255,6 +260,9 @@ window.addEventListener('load', () => {
 				'Enter x and y resolution (separated by a space)',
 				'1920 1080'
 			);
+
+			if (res === null) return;
+
 			const resolution = res.split(' ').map((x) => parseInt(x));
 
 			if (
@@ -312,6 +320,7 @@ window.addEventListener('load', () => {
 
 	canvas.addEventListener('mousemove', (event) => {
 		const context = canvas.getContext('2d');
+		if (!context) throw new Error('Could not get canvas context');
 		context.strokeStyle = '#fff2';
 
 		if (pathLength > 0) {
