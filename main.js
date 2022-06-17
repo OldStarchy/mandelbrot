@@ -9,6 +9,15 @@ import {
 } from 'https://unpkg.com/preact@latest/hooks/dist/hooks.module.js?module';
 import { h, render } from 'https://unpkg.com/preact@latest?module';
 
+/**
+ * @typedef {{transform: Matrix3; thumbnail: HTMLCanvasElement}} HistoryItem
+ */
+
+/**
+ * @template T
+ * @typedef {{created: number; id: string; state: T; children: HistoryNode<T>[], parent: null|HistoryNode<T>}} HistoryNode
+ */
+
 const html = htm.bind(h);
 
 class ComplexNumber {
@@ -18,11 +27,6 @@ class ComplexNumber {
 	}
 
 	add(other) {
-		// return new ComplexNumber(
-		// 	this.real + other.real,
-		// 	this.imaginary + other.imaginary
-		// );
-
 		this.real += other.real;
 		this.imaginary += other.imaginary;
 
@@ -30,11 +34,6 @@ class ComplexNumber {
 	}
 
 	subtract(other) {
-		// return new ComplexNumber(
-		// 	this.real - other.real,
-		// 	this.imaginary - other.imaginary
-		// );
-
 		this.real -= other.real;
 		this.imaginary -= other.imaginary;
 
@@ -42,13 +41,6 @@ class ComplexNumber {
 	}
 
 	multiply(other) {
-		// return new ComplexNumber(
-		// 	this.real * other.real -
-		// 		this.imaginary * other.imaginary,
-		// 	this.imaginary * other.real +
-		// 		this.real * other.imaginary
-		// );
-
 		const real = this.real * other.real - this.imaginary * other.imaginary;
 		const imaginary =
 			this.imaginary * other.real + this.real * other.imaginary;
@@ -61,15 +53,6 @@ class ComplexNumber {
 
 	divide(other) {
 		const denominator = other.real ** 2 + other.imaginary ** 2;
-		// return new ComplexNumber(
-		// 	(this.real * other.real +
-		// 		this.imaginary * other.imaginary) /
-		// 		denominator,
-		// 	(this.imaginary * other.real -
-		// 		this.real * other.imaginary) /
-		// 		denominator
-		// );
-
 		const real =
 			(this.real * other.real + this.imaginary * other.imaginary) /
 			denominator;
@@ -108,7 +91,6 @@ function iterateMandelbrot(c, maxIterations) {
 	let z = new ComplexNumber(0, 0);
 	for (let i = 0; i < maxIterations; i++) {
 		z = z.multiply(z).add(c);
-		// z = new ComplexNumber(z.imaginary, z.real);
 		if (z.magnitudeSquared() > 4) return { iterations: i, z };
 	}
 	return { iterations: maxIterations, z };
@@ -122,7 +104,6 @@ function iterateMandelbrotAndGetPath(c, maxIterations) {
 	for (let i = 0; i < maxIterations; i++) {
 		z = z.multiply(z).add(c);
 		path.push(z.clone());
-		// z = new ComplexNumber(z.imaginary, z.real);
 		if (z.magnitudeSquared() > 4) return path;
 	}
 
@@ -148,9 +129,6 @@ class Vector3 {
 	}
 }
 
-/**
- * A 3x3 matrix class
- */
 class Matrix3 {
 	constructor(a, b, c, d, e, f, g, h, i) {
 		this.elements = [a, b, c, d, e, f, g, h, i];
@@ -390,32 +368,7 @@ window.addEventListener('load', () => {
 		document.getElementById('history')
 	);
 
-	// const historyGui = /** @type {HistoryElement|undefined} */ (document.getElementById('history'));
-
 	let abortController = new AbortController();
-	// history.onChange = () => {
-
-	// 	if (historyGui) {
-	// 		historyGui.clear();
-
-	// 		historyGui.append(
-	// 			...history.history.map((item, index) => {
-	// 				const button = document.createElement('button');
-	// 				button.appendChild(item.thumbnail);
-	// 				button.style.padding = '0';
-	// 				button.style.margin = '0';
-	// 				button.style.border = 'none';
-	// 				button.style.background = 'none';
-	// 				button.style.cursor = 'pointer';
-	// 				button.style.display = 'flex';
-	// 				button.addEventListener('click', () => {
-	// 					history.goTo(index)
-	// 				});
-	// 				return button;
-	// 			})
-	// 		);
-	// 	}
-	// };
 
 	function drawCurrent() {
 		abortController.abort();
@@ -675,64 +628,6 @@ window.addEventListener('load', () => {
 	});
 });
 
-//custom html component for history
-class HistoryElement extends HTMLElement {
-	constructor() {
-		super();
-		this.attachShadow({ mode: 'open' });
-		this.shadowRoot.innerHTML = /*html*/ `
-<style>
-</style>
-
-<div class="history">
-<button class="history__show-hide">+</button>
-<div class="history__content">
-<ul class="history__list"></ul>
-</div>
-</div>
-`;
-
-		this.root = this.shadowRoot.querySelector('.history');
-		this.showHideButton = this.shadowRoot.querySelector(
-			'.history__show-hide'
-		);
-		this.content = this.shadowRoot.querySelector('.history__content');
-		this.list = this.shadowRoot.querySelector('.history__list');
-
-		this.showHideButton.addEventListener('click', () => {
-			this.root.classList.toggle('history--is-open');
-		});
-	}
-
-	setSelected(selected) {
-		this.list.querySelectorAll('li').forEach((li) => {
-			li.classList.remove('history__item--is-current');
-		});
-
-		this.list.children[selected]?.classList?.add(
-			'history__item--is-current'
-		);
-	}
-
-	/**
-	 * @param {HTMLElement[]} items
-	 */
-	append(...items) {
-		items.forEach((item) => {
-			const listItem = document.createElement('li');
-			listItem.classList.add('history__item');
-			listItem.appendChild(item);
-			this.list.appendChild(listItem);
-		});
-	}
-
-	clear() {
-		this.list.innerHTML = '';
-	}
-}
-
-customElements.define('x-history', HistoryElement);
-
 /**
  * @template T
  */
@@ -795,20 +690,6 @@ class StateHistory {
 	}
 }
 
-/**
- * @template T
- * @param {HistoryNode<T>} nodePrev
- * @param {HistoryNode<T>} node
- * @param {HTMLElement} element
- */
-function diff(nodePrev, node, element) {
-	if (nodePrev === node) return;
-}
-
-/**
- * @template T
- * @typedef {{created: number; id: string; state: T; children: HistoryNode<T>[], parent: null|HistoryNode<T>}} HistoryNode
- */
 /**
  * @template T
  */
@@ -957,20 +838,9 @@ function randId() {
 }
 
 /**
- * @typedef {{transform: Matrix3; thumbnail: HTMLCanvasElement}} HistoryItem
- */
-
-/**
  * @param {{historyTree: HistoryTree<HistoryItem>}} props
  */
 function HistoryTreeView({ historyTree }) {
-	// <div class="history">
-	// 	<button class="history__show-hide">+</button>
-	// 	<div class="history__content">
-	// 		<ul class="history__list"></ul>
-	// 	</div>
-	// </div>
-
 	const [isOpen, setIsOpen] = useState(false);
 
 	const [_, setRefresh] = useState({});
