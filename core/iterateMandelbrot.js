@@ -1,4 +1,5 @@
 import ComplexNumber from '../core/ComplexNumber.js';
+import { distanceFunction } from '../distanceFunction.js';
 
 /**
  * @param {ComplexNumber} c
@@ -10,7 +11,7 @@ function iterateMandelbrotJs(c, maxIterations) {
 	for (let i = 0; i < maxIterations; i++) {
 		z = z.multiply(z).add(c);
 
-		if (z.magnitudeSquared() > 4) return { iterations: i, z };
+		if (distanceFunction(z)) return { iterations: i, z };
 	}
 	return { iterations: maxIterations, z };
 }
@@ -24,7 +25,7 @@ function iterateMandelbrotJs(c, maxIterations) {
 function iterateJuliaJs(initial, c, maxIterations) {
 	let z = initial;
 	for (let i = 0; i < maxIterations; i++) {
-		if (z.magnitudeSquared() > 4) return { iterations: i, z };
+		if (distanceFunction(z)) return { iterations: i, z };
 		z = z.multiply(z).add(c);
 	}
 	return { iterations: maxIterations, z };

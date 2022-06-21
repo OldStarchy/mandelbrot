@@ -9,6 +9,7 @@ import HistoryTree from './core/HistoryTree.js';
 import iterateMandelbrot, { iterateJuliaJs } from './core/iterateMandelbrot.js';
 import Matrix3 from './core/Matrix3.js';
 import Vector3 from './core/Vector3.js';
+import { distanceFunction } from './distanceFunction.js';
 import debounce from './util/debounce.js';
 
 /**
@@ -32,7 +33,7 @@ function iterateMandelbrotAndGetPath(c, maxIterations) {
 	for (let i = 0; i < maxIterations; i++) {
 		z = z.multiply(z).add(c);
 		path.push(z.clone());
-		if (z.magnitudeSquared() > 4) return path;
+		if (distanceFunction(z)) return path;
 	}
 
 	return path;
@@ -45,7 +46,7 @@ function iterateJuliaAndGetPath(initial, c, maxIterations) {
 	for (let i = 0; i < maxIterations; i++) {
 		z = z.multiply(z).add(c);
 		path.push(z.clone());
-		if (z.magnitudeSquared() > 4) return path;
+		if (distanceFunction(z)) return path;
 	}
 
 	return path;
